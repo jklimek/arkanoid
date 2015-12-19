@@ -55,16 +55,21 @@ var loop = function () {
     ballY += ballDY;
     ballX += ballDX;
 
-
-    if (ballObjectCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX, paddleY, paddleHeight, paddleWidth)) {
+    // paddle collision
+    if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX, paddleY, paddleHeight, paddleWidth)) {
         ballDY = -ballDY;
     }
-    if (ballObjectCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX2, paddleY2, paddleHeight2, paddleWidth2)) {
+
+    // test block collisions
+    if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth/2, c.height/2, 100, 100)) {
         ballDY = -ballDY;
+    }
+    if (ballObjectHorizontalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth/2, c.height/2, 100, 100)) {
+        ballDX = -ballDX;
     }
 
     paddle(paddleX, paddleY, paddleWidth, paddleHeight);
-    paddle(paddleX2, paddleY2, paddleWidth2, paddleHeight2);
+    block(cWidth/2, c.height/2, 100, 100);
 
     if (ballOut) {
         clearInterval(intervalId);
@@ -73,7 +78,7 @@ var loop = function () {
     }
 };
 
-var ballObjectCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
+var ballObjectVerticalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
 
     // ball from top collision
     if (
@@ -88,6 +93,28 @@ var ballObjectCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
         ((by - br) <= oy+oh-bdy/2 // ayyy lmao
         && (by - br) >= oy+oh+bdy/2)
         && bx >= ox && bx <= ox + ow
+    ) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+var ballObjectHorizontalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
+
+    // ball from left collision
+    if (
+        ((bx + br) <= ox+bdx/2
+        && (bx + br) >= ox-bdx/2)
+        && by >= oy && by <= oy + oh
+    ) {
+        return true;
+    }
+    // ball from right collision
+    else if (
+        ((bx - br) <= ox+ow-bdx/2
+        && (bx - br) >= ox+ow+bdx/2)
+        && by >= oy && by <= oy + oh
     ) {
         return true;
     } else {
@@ -115,6 +142,14 @@ var paddle = function (x, y, width, height) {
     ctx.beginPath();
     ctx.rect(x, y, width, height);
     ctx.fillStyle = "#FF0000";
+    ctx.fill();
+    ctx.closePath();
+};
+
+var block = function (x, y, width, height) {
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.fillStyle = "#FF0099";
     ctx.fill();
     ctx.closePath();
 };
