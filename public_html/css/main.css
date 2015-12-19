@@ -1,0 +1,12 @@
+.center {
+    text-align: center ;
+}
+
+.center h1 {
+    font-family: Arial;
+    text-transform: uppercase;
+}
+
+canvas {
+    background: #000;
+}
