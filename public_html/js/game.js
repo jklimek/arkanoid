@@ -12,12 +12,8 @@ var ballX = cWidth / 2;
 var ballY = cHeight - 10;
 var paddleWidth = 100;
 var paddleHeight = 10;
-var paddleWidth2 = 10;
-var paddleHeight2 = 100;
 var paddleX = cWidth / 2 - paddleWidth / 2;
 var paddleY = cHeight - paddleHeight;
-var paddleX2 = cWidth / 2 - paddleWidth / 2;
-var paddleY2 = cHeight - paddleHeight - 200;
 
 var ballDX = getRandomArbitrary(-5, 5);
 var ballDY = getRandomArbitrary(-5, -4);
@@ -47,9 +43,9 @@ var loop = function () {
     }
 
     if (rightPressed && paddleX < c.width - paddleWidth) {
-        paddleX += 7; paddleX2 += 7;
+        paddleX += 7;
     } else if (leftPressed && paddleX > 0) {
-        paddleX -= 7; paddleX2 -= 7;
+        paddleX -= 7;
     }
 
     ballY += ballDY;
@@ -125,6 +121,7 @@ var ballObjectHorizontalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, o
 var loosingScreen = function () {
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.font = "20px Arial";
+    ctx.fillStyle = "#FF0000";
     ctx.fillText("You fucked up mate!", cWidth / 4 * 2, cHeight / 4 * 3);
     ctx.fillText("Pres R to restart!", cWidth / 4 * 2, cHeight / 4 * 3 + 24);
 };
@@ -186,8 +183,6 @@ var restart = function () {
     ballDY = getRandomArbitrary(-5, -4);
     paddleX = cWidth / 2 - paddleWidth / 2;
     paddleY = cHeight - paddleHeight;
-    paddleX2 = cWidth / 2 - paddleWidth / 2;
-    paddleY2 = cHeight - paddleHeight - 200;
 
     clearInterval(intervalId);
     intervalId = setInterval(loop, 10);
