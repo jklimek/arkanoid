@@ -3,24 +3,94 @@
  */
 
 
-var cWidth = 1024, cHeight = 600;
+var cWidth = 1000, cHeight = 600;
 
 var c = document.getElementById("c");
 var ctx = c.getContext("2d");
 
-var ballX = cWidth / 2;
-var ballY = cHeight - 10;
+// Levels section
+var level = 1;
+
+// Points section
+var points = 0;
+
+var drawHud = function(points, level) {
+    ctx.font = "20px Arial";
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText("Level "+level , 10, 30);
+    ctx.textAlign = "right";
+    ctx.fillText(points , 990, 30);
+};
+
+// Paddle section
 var paddleWidth = 100;
 var paddleHeight = 10;
 var paddleX = cWidth / 2 - paddleWidth / 2;
 var paddleY = cHeight - paddleHeight;
 
+// Ball section
+var ballX = cWidth / 2;
+var ballY = cHeight - 10;
 var ballDX = getRandomArbitrary(-5, 5);
 var ballDY = getRandomArbitrary(-5, -4);
 var ballRadius = 10;
-
 var ballOut = false;
 
+// Blocks section
+var blockWidth = 80;
+var blockHeight = 20;
+
+var blocksArray = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [2, 1, 1, 1, 2, 2, 1, 1, 1, 2],
+    [1, 2, 1, 2, 1, 1, 2, 1, 2, 1],
+    [1, 1, 2, 1, 1, 1, 1, 2, 1, 1]
+];
+
+var drawBlocks = function (blocksArray) {
+
+    for (var y in blocksArray) {
+        if (blocksArray.hasOwnProperty(y)) {
+            var yPadding = 10;
+            //console.log(blocksArray[y]);
+            for (var x in blocksArray[y]) {
+                if (blocksArray[y].hasOwnProperty(x)) {
+
+                    var xPadding = 20;
+                    if (x == 0) {
+                        xPadding = 10;
+                    }
+
+                    var blockX = 10 + x * (blockWidth + xPadding);
+                    var blockY = y * (10 + blockHeight) + yPadding + 40;
+                    var type = blocksArray[y][x];
+
+                    if (blocksArray[y][x] > 0) {
+
+
+                        if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, blockX, blockY, blockWidth, blockHeight)) {
+                            ballDY = -ballDY;
+                            blocksArray[y][x]--;
+                            points += 10;
+                        }
+                        if (ballObjectHorizontalCollision(ballX, ballY, ballRadius, ballDY, ballDX, blockX, blockY, blockWidth, blockHeight)) {
+                            ballDX = -ballDX;
+                            blocksArray[y][x]--;
+                            points += 10;
+                        }
+
+                        block(blockX, blockY, blockWidth, blockHeight, type);
+                    }
+
+
+                }
+            }
+        }
+    }
+};
+
+// Keys section
 var rightPressed = false;
 var leftPressed = false;
 
@@ -52,20 +122,22 @@ var loop = function () {
     ballX += ballDX;
 
     // paddle collision
-    if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX, paddleY, paddleHeight, paddleWidth)) {
+    if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX, paddleY, paddleWidth, paddleHeight)) {
         ballDY = -ballDY;
     }
 
     // test block collisions
-    if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth/2, c.height/2, 100, 100)) {
-        ballDY = -ballDY;
-    }
-    if (ballObjectHorizontalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth/2, c.height/2, 100, 100)) {
-        ballDX = -ballDX;
-    }
+    //if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth / 2, c.height / 2, 100, 100)) {
+    //    ballDY = -ballDY;
+    //}
+    //if (ballObjectHorizontalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth / 2, c.height / 2, 100, 100)) {
+    //    ballDX = -ballDX;
+    //}
 
     paddle(paddleX, paddleY, paddleWidth, paddleHeight);
-    block(cWidth/2, c.height/2, 100, 100);
+    drawBlocks(blocksArray);
+    drawHud(points, level);
+
 
     if (ballOut) {
         clearInterval(intervalId);
@@ -74,20 +146,20 @@ var loop = function () {
     }
 };
 
-var ballObjectVerticalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
+var ballObjectVerticalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, oh) {
 
     // ball from top collision
     if (
-        ((by + br) <= oy+bdy/2
-        && (by + br) >= oy-bdy/2)
+        ((by + br) <= oy + bdy / 2
+        && (by + br) >= oy - bdy / 2)
         && bx >= ox && bx <= ox + ow
     ) {
         return true;
     }
     // ball from bottom collision
     else if (
-        ((by - br) <= oy+oh-bdy/2 // ayyy lmao
-        && (by - br) >= oy+oh+bdy/2)
+        ((by - br) <= oy + oh - bdy / 2 // ayyy lmao
+        && (by - br) >= oy + oh + bdy / 2)
         && bx >= ox && bx <= ox + ow
     ) {
         return true;
@@ -96,20 +168,20 @@ var ballObjectVerticalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow)
     }
 };
 
-var ballObjectHorizontalCollision = function(bx, by, br, bdy, bdx, ox, oy, oh, ow) {
+var ballObjectHorizontalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, oh) {
 
     // ball from left collision
     if (
-        ((bx + br) <= ox+bdx/2
-        && (bx + br) >= ox-bdx/2)
+        ((bx + br) <= ox + bdx / 2
+        && (bx + br) >= ox - bdx / 2)
         && by >= oy && by <= oy + oh
     ) {
         return true;
     }
     // ball from right collision
     else if (
-        ((bx - br) <= ox+ow-bdx/2
-        && (bx - br) >= ox+ow+bdx/2)
+        ((bx - br) <= ox + ow - bdx / 2
+        && (bx - br) >= ox + ow + bdx / 2)
         && by >= oy && by <= oy + oh
     ) {
         return true;
@@ -143,10 +215,17 @@ var paddle = function (x, y, width, height) {
     ctx.closePath();
 };
 
-var block = function (x, y, width, height) {
+var block = function (x, y, width, height, type) {
+
+    if (type == 1) {
+        var color = "#FF0000";
+    } else if (type == 2) {
+        var color = "#3CD0CF";
+    }
+
     ctx.beginPath();
     ctx.rect(x, y, width, height);
-    ctx.fillStyle = "#FF0099";
+    ctx.fillStyle = color;
     ctx.fill();
     ctx.closePath();
 };
@@ -188,5 +267,5 @@ var restart = function () {
     intervalId = setInterval(loop, 10);
 
 };
-
+drawBlocks(blocksArray);
 var intervalId = setInterval(loop, 10);
