@@ -96,6 +96,7 @@ var leftPressed = false;
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
 
 
 var gameLoop = function () {
@@ -230,6 +231,13 @@ function keyUpHandler(e) {
         rightPressed = false;
     } else if (e.keyCode == 37) {
         leftPressed = false;
+    }
+}
+
+function mouseMoveHandler(e) {
+    var relativeX = e.clientX - c.offsetLeft;
+    if (relativeX > 0 && relativeX < c.width) {
+        paddleX = relativeX - paddleWidth / 2;
     }
 }
 
