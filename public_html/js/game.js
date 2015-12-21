@@ -34,7 +34,7 @@ var ballX = cWidth / 2;
 var ballY = cHeight - 10;
 var ballDX = getRandomArbitrary(-5, 5);
 var ballDY = getRandomArbitrary(-5, -4);
-var ballRadius = 10;
+var ballRadius = 7;
 var ballOut = false;
 
 // Blocks section
@@ -98,7 +98,9 @@ document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
 
-var loop = function () {
+
+
+var gameLoop = function () {
     ctx.clearRect(0, 0, c.width, c.height);
     ball(ballX, ballY);
     if (ballX + ballDX > c.width - ballRadius || ballX + ballDX < ballRadius) {
@@ -108,7 +110,7 @@ var loop = function () {
         ballDY = -ballDY;
     }
 
-    if (ballY + ballRadius > c.height) {
+    if (ballY > c.height) {
         ballOut = true;
     }
 
@@ -125,14 +127,6 @@ var loop = function () {
     if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, paddleX, paddleY, paddleWidth, paddleHeight)) {
         ballDY = -ballDY;
     }
-
-    // test block collisions
-    //if (ballObjectVerticalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth / 2, c.height / 2, 100, 100)) {
-    //    ballDY = -ballDY;
-    //}
-    //if (ballObjectHorizontalCollision(ballX, ballY, ballRadius, ballDY, ballDX, cWidth / 2, c.height / 2, 100, 100)) {
-    //    ballDX = -ballDX;
-    //}
 
     paddle(paddleX, paddleY, paddleWidth, paddleHeight);
     drawBlocks(blocksArray);
@@ -192,10 +186,11 @@ var ballObjectHorizontalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, 
 
 var loosingScreen = function () {
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.font = "20px Arial";
+    ctx.font = "40px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("You fucked up mate!", cWidth / 4 * 2, cHeight / 4 * 3);
-    ctx.fillText("Pres R to restart!", cWidth / 4 * 2, cHeight / 4 * 3 + 24);
+    ctx.textAlign = "center"
+    ctx.fillText("NEXT TIME, GADGET!", cWidth / 2, cHeight / 2);
+    ctx.fillText("PRESS R TO RESTART", cWidth / 2, cHeight / 2 + 100);
 };
 
 var ball = function (x, y) {
@@ -216,11 +211,12 @@ var paddle = function (x, y, width, height) {
 };
 
 var block = function (x, y, width, height, type) {
+    var color = "#FF0000";
 
     if (type == 1) {
-        var color = "#FF0000";
+        color = "#FF0000";
     } else if (type == 2) {
-        var color = "#3CD0CF";
+        color = "#3CD0CF";
     }
 
     ctx.beginPath();
@@ -237,6 +233,8 @@ function keyDownHandler(e) {
         leftPressed = true;
     } else if (e.keyCode == 82 && ballOut) {
         restart();
+    } else if (e.keyCode == 32) {
+        startGame();
     }
 
     //console.log(e.keyCode);
@@ -253,8 +251,15 @@ function keyUpHandler(e) {
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
+var startGame = function () {
+    ballX = cWidth / 2;
+    ballY = cHeight - 10;
+    clearInterval(intervalId);
+    intervalId = setInterval(gameLoop, 10);
+};
 
 var restart = function () {
+    points = 0;
     ballOut = false;
     ballX = cWidth / 2;
     ballY = cHeight - 11;
@@ -262,10 +267,37 @@ var restart = function () {
     ballDY = getRandomArbitrary(-5, -4);
     paddleX = cWidth / 2 - paddleWidth / 2;
     paddleY = cHeight - paddleHeight;
+    blocksArray = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [2, 1, 1, 1, 2, 2, 1, 1, 1, 2],
+        [1, 2, 1, 2, 1, 1, 2, 1, 2, 1],
+        [1, 1, 2, 1, 1, 1, 1, 2, 1, 1]
+    ];
 
     clearInterval(intervalId);
-    intervalId = setInterval(loop, 10);
+    intervalId = setInterval(gameLoop, 10);
 
 };
-drawBlocks(blocksArray);
-var intervalId = setInterval(loop, 10);
+
+var splashTitleX = cWidth/2;
+var splashLoop = function() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText("BEST ARKANOID GAME" , splashTitleX + getRandomArbitrary(-5, 5), cHeight/2);
+    ctx.fillText("(PLAY SPACE TO PRESS)" , splashTitleX + getRandomArbitrary(-5, 5), cHeight/2+ 100);
+
+    ball(ballX, ballY);
+    if (ballX + ballDX > cWidth - ballRadius || ballX + ballDX < ballRadius) {
+        ballDX = -ballDX;
+    }
+    if (ballY + ballDY > cHeight - ballRadius ||ballY + ballDY < ballRadius) {
+        ballDY = -ballDY;
+    }
+
+    ballY += ballDY;
+    ballX += ballDX;
+};
+
+var intervalId = setInterval(splashLoop, 10);
