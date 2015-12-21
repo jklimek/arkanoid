@@ -10,17 +10,18 @@ var ctx = c.getContext("2d");
 
 // Levels section
 var level = 1;
+var inGame = 0;
 
 // Points section
 var points = 0;
 
-var drawHud = function(points, level) {
+var drawHud = function (points, level) {
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("Level "+level , 10, 30);
+    ctx.fillText("Level " + level, 10, 30);
     ctx.textAlign = "right";
-    ctx.fillText(points , 990, 30);
+    ctx.fillText(points, 990, 30);
 };
 
 // Paddle section
@@ -41,12 +42,14 @@ var ballOut = false;
 var blockWidth = 80;
 var blockHeight = 20;
 
-var blocksArray = [
+var blocksArrayLvl1 = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [2, 1, 1, 1, 2, 2, 1, 1, 1, 2],
     [1, 2, 1, 2, 1, 1, 2, 1, 2, 1],
     [1, 1, 2, 1, 1, 1, 1, 2, 1, 1]
 ];
+
+var blocksArray = JSON.parse(JSON.stringify(blocksArrayLvl1));
 
 var drawBlocks = function (blocksArray) {
 
@@ -98,23 +101,21 @@ document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
 
-
-
 var gameLoop = function () {
-    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, cWidth, cHeight);
     ball(ballX, ballY);
-    if (ballX + ballDX > c.width - ballRadius || ballX + ballDX < ballRadius) {
+    if (ballX + ballDX > cWidth - ballRadius || ballX + ballDX < ballRadius) {
         ballDX = -ballDX;
     }
     if (ballY + ballDY < ballRadius) {
         ballDY = -ballDY;
     }
 
-    if (ballY > c.height) {
+    if (ballY > cHeight) {
         ballOut = true;
     }
 
-    if (rightPressed && paddleX < c.width - paddleWidth) {
+    if (rightPressed && paddleX < cWidth - paddleWidth) {
         paddleX += 7;
     } else if (leftPressed && paddleX > 0) {
         paddleX -= 7;
@@ -136,7 +137,6 @@ var gameLoop = function () {
     if (ballOut) {
         clearInterval(intervalId);
         loosingScreen();
-        console.log("You loose");
     }
 };
 
@@ -151,15 +151,9 @@ var ballObjectVerticalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, oh
         return true;
     }
     // ball from bottom collision
-    else if (
-        ((by - br) <= oy + oh - bdy / 2 // ayyy lmao
-        && (by - br) >= oy + oh + bdy / 2)
-        && bx >= ox && bx <= ox + ow
-    ) {
-        return true;
-    } else {
-        return false;
-    }
+    else return !!(((by - br) <= oy + oh - bdy / 2 // ayyy lmao
+    && (by - br) >= oy + oh + bdy / 2)
+    && bx >= ox && bx <= ox + ow);
 };
 
 var ballObjectHorizontalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, oh) {
@@ -173,22 +167,16 @@ var ballObjectHorizontalCollision = function (bx, by, br, bdy, bdx, ox, oy, ow, 
         return true;
     }
     // ball from right collision
-    else if (
-        ((bx - br) <= ox + ow - bdx / 2
-        && (bx - br) >= ox + ow + bdx / 2)
-        && by >= oy && by <= oy + oh
-    ) {
-        return true;
-    } else {
-        return false;
-    }
+    else return !!(((bx - br) <= ox + ow - bdx / 2
+    && (bx - br) >= ox + ow + bdx / 2)
+    && by >= oy && by <= oy + oh);
 };
 
 var loosingScreen = function () {
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.font = "40px Arial";
     ctx.fillStyle = "#FF0000";
-    ctx.textAlign = "center"
+    ctx.textAlign = "center";
     ctx.fillText("NEXT TIME, GADGET!", cWidth / 2, cHeight / 2);
     ctx.fillText("PRESS R TO RESTART", cWidth / 2, cHeight / 2 + 100);
 };
@@ -233,7 +221,7 @@ function keyDownHandler(e) {
         leftPressed = true;
     } else if (e.keyCode == 82 && ballOut) {
         restart();
-    } else if (e.keyCode == 32) {
+    } else if (e.keyCode == 32 && !inGame) {
         startGame();
     }
 
@@ -252,8 +240,11 @@ function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
 var startGame = function () {
+    inGame = 1;
     ballX = cWidth / 2;
     ballY = cHeight - 10;
+    ballDX = getRandomArbitrary(-5, 5);
+    ballDY = getRandomArbitrary(-5, -4);
     clearInterval(intervalId);
     intervalId = setInterval(gameLoop, 10);
 };
@@ -267,32 +258,27 @@ var restart = function () {
     ballDY = getRandomArbitrary(-5, -4);
     paddleX = cWidth / 2 - paddleWidth / 2;
     paddleY = cHeight - paddleHeight;
-    blocksArray = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        [2, 1, 1, 1, 2, 2, 1, 1, 1, 2],
-        [1, 2, 1, 2, 1, 1, 2, 1, 2, 1],
-        [1, 1, 2, 1, 1, 1, 1, 2, 1, 1]
-    ];
+    blocksArray = JSON.parse(JSON.stringify(blocksArrayLvl1));
 
     clearInterval(intervalId);
     intervalId = setInterval(gameLoop, 10);
 
 };
 
-var splashTitleX = cWidth/2;
-var splashLoop = function() {
+var splashTitleX = cWidth / 2;
+var splashLoop = function () {
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.font = "40px Arial";
     ctx.textAlign = "center";
     ctx.fillStyle = "#FF0000";
-    ctx.fillText("BEST ARKANOID GAME" , splashTitleX + getRandomArbitrary(-5, 5), cHeight/2);
-    ctx.fillText("(PLAY SPACE TO PRESS)" , splashTitleX + getRandomArbitrary(-5, 5), cHeight/2+ 100);
+    ctx.fillText("BEST ARKANOID GAME", splashTitleX + getRandomArbitrary(-5, 5), cHeight / 2);
+    ctx.fillText("(PLAY SPACE TO PRESS)", splashTitleX + getRandomArbitrary(-5, 5), cHeight / 2 + 100);
 
     ball(ballX, ballY);
     if (ballX + ballDX > cWidth - ballRadius || ballX + ballDX < ballRadius) {
         ballDX = -ballDX;
     }
-    if (ballY + ballDY > cHeight - ballRadius ||ballY + ballDY < ballRadius) {
+    if (ballY + ballDY > cHeight - ballRadius || ballY + ballDY < ballRadius) {
         ballDY = -ballDY;
     }
 
